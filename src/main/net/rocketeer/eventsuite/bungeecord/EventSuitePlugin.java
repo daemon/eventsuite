@@ -10,7 +10,7 @@ public class EventSuitePlugin extends Plugin {
   public void onEnable() {
     instance = this;
     try {
-      AnnounceServer announceServer = new AnnounceServer();
+      EventBusServer announceServer = new EventBusServer();
       announceServer.start();
     } catch (IOException e) {
       e.printStackTrace();

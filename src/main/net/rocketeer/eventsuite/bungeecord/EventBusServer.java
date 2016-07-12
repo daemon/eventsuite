@@ -1,12 +1,8 @@
 package net.rocketeer.eventsuite.bungeecord;
 
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.rocketeer.eventsuite.AnnounceClient;
+import net.rocketeer.eventsuite.*;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -14,10 +10,11 @@ import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AnnounceServer {
+public class EventBusServer {
   private boolean running = false;
   private Selector selector;
-  private Map<SocketChannel, StringBuilder> channelToMessage = new HashMap<>();
+  private Map<SocketChannel, StringNetBuffer> channelToMessage = new HashMap<>();
+  private EndpointTrie<SocketChannel> subscribers = new EndpointTrie<>();
 
   public synchronized void start() throws IOException {
     if (this.running)
@@ -25,6 +22,10 @@ public class AnnounceServer {
     this.running = true;
     this.selector = Selector.open();
     EventSuitePlugin.runAsync(new ProcessTask());
+  }
+
+  public void registerSubscriber(Endpoint endpoint, SocketChannel subscriber) {
+    this.subscribers.insert(endpoint, subscriber);
   }
 
   private class ProcessTask implements Runnable {
@@ -37,9 +38,22 @@ public class AnnounceServer {
       } catch (IOException ignored) {}
       running = false;
     }
+
+    private StringNetBuffer createEventBuffer() {
+      StringNetBuffer buffer = new StringNetBuffer().onNewMessage((message) -> {
+        EventMessage.Type type = EventMessage.type(message);
+        if (type == null)
+          return;
+        else if (type == EventMessage.Type.PUBLISH) {
+
+        } else { // SUBSCRIBE
+
+        }
+      });
+    }
+
     @Override
     public void run() {
-      ByteBuffer buffer = ByteBuffer.allocate(256);
       ServerSocketChannel serverChannel = null;
       try {
         serverChannel = ServerSocketChannel.open();
@@ -69,16 +83,17 @@ public class AnnounceServer {
               channel = ((ServerSocketChannel) key.channel()).accept();
               channel.configureBlocking(false);
               channel.register(selector, SelectionKey.OP_READ);
-              channelToMessage.put(channel, new StringBuilder());
+              channelToMessage.put(channel, createEventBuffer());
             } catch (IOException ignored) { ignored.printStackTrace(); }
             continue;
           }
 
           SocketChannel clientChannel = (SocketChannel) key.channel();
-          StringBuilder builder = channelToMessage.get(clientChannel);
+          StringNetBuffer buffer = channelToMessage.get(clientChannel);
           int read = 0;
           try {
-            read = clientChannel.read(buffer);
+            read = clientChannel.read(buffer.buffer());
+            buffer.parse();
           } catch (IOException e) {
             try {
               clientChannel.close();
@@ -91,20 +106,7 @@ public class AnnounceServer {
           if (read == -1) {
             channelToMessage.remove(clientChannel);
             key.cancel();
-            continue;
-          } else if (read == 0)
-            continue;
-
-          buffer.flip();
-          while (buffer.hasRemaining()) {
-            char c = (char) buffer.get();
-            if (c == '\n') { // terminal
-              ProxyServer.getInstance().broadcast(TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', builder.toString())));
-              builder.setLength(0);
-            } else
-              builder.append(c);
           }
-          buffer.clear();
         }
       }
     }
