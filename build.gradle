@@ -1,0 +1,57 @@
+apply plugin: 'idea'
+apply plugin: 'java'
+
+version = '0.0.1'
+
+repositories {
+    mavenCentral()
+    flatDir {
+       dirs 'libs'
+    }
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main']
+        }
+    }
+}
+
+task bukkitPlugin(type: Jar) {
+    baseName = 'eventsuite-bukkit'
+    manifest {
+        attributes 'Implementation-Title': 'EventSuite',
+                   'Implementation-Version': version
+    }
+    from (sourceSets.main.output) {
+        include "net/rocketeer/eventsuite/**"
+        exclude "net/rocketeer/eventsuite/bungeecord/**"
+    }
+    from ('src/main/resources/bukkit') {
+        include "config.yml"
+        include "plugin.yml"
+    }
+}
+
+task bungeeCordPlugin(type: Jar) {
+    baseName = 'eventsuite-bc'
+    from (sourceSets.main.output) {
+        include "net/rocketeer/eventsuite/**"
+        exclude "net/rocketeer/eventsuite/bukkit/**"
+    }
+    from ('src/main/resources/bungee') {
+        include "config.yml"
+        include "plugin.yml"
+    }
+}
+
+dependencies {
+    compile name: 'spigot-api-1.9.4'
+    compile 'net.md-5:bungeecord-api:1.7-SNAPSHOT'
+}
+
+buildDir = 'bin'

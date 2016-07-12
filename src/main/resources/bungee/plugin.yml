@@ -1,0 +1,4 @@
+name: eventsuite
+main: net.rocketeer.eventsuite.bungeecord.EventSuitePlugin
+version: 0.0.1
+author: tetrisd

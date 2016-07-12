@@ -1,0 +1,10 @@
+name: eventsuite
+main: net.rocketeer.eventsuite.bukkit.EventSuitePlugin
+version: 0.0.1
+# depend: [Vault,WorldGuard]
+commands:
+    es:
+        description: Base command for all EventSuite-related things.
+        usage: /es
+        permission: eventsuite.cmd
+        permission-message: No permission.
