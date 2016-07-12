@@ -1,6 +1,7 @@
 package net.rocketeer.eventsuite;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 
 public class StringNetBuffer {
   public static byte TERMINAL = '\0';
@@ -24,7 +25,7 @@ public class StringNetBuffer {
     return this;
   }
 
-  public void parse() {
+  public void parse(SocketChannel channel) {
     this.buffer.flip();
     try {
       while (this.buffer.hasRemaining()) {
@@ -36,7 +37,7 @@ public class StringNetBuffer {
 
         String str = builder.toString();
         if (this.callback != null)
-          this.callback.onMessage(str);
+          this.callback.onMessage(channel, str);
       }
     } finally {
       this.buffer.clear();
@@ -44,6 +45,6 @@ public class StringNetBuffer {
   }
 
   public interface Callback {
-    void onMessage(String message);
+    void onMessage(SocketChannel channel, String message);
   }
 }

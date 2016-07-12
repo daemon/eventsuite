@@ -3,11 +3,13 @@ package net.rocketeer.eventsuite.bungeecord;
 import net.rocketeer.eventsuite.*;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class EventBusServer {
@@ -40,16 +42,30 @@ public class EventBusServer {
     }
 
     private StringNetBuffer createEventBuffer() {
-      StringNetBuffer buffer = new StringNetBuffer().onNewMessage((message) -> {
+      StringNetBuffer buffer = new StringNetBuffer().onNewMessage((channel, message) -> {
         EventMessage.Type type = EventMessage.type(message);
-        if (type == null)
-          return;
-        else if (type == EventMessage.Type.PUBLISH) {
-
+        if (type == EventMessage.Type.PUBLISH) {
+          EventMessage.PublishMessage pubMsg = EventMessage.toPublishMessage(message);
+          if (pubMsg == null)
+            return;
+          List<SocketChannel> channels = subscribers.lookup(pubMsg.endpoint());
+          ByteBuffer buf = ByteBuffer.wrap(message.getBytes());
+          for (SocketChannel c : channels) {
+            try {
+              c.write(buf);
+            } catch (IOException ignored) {
+              subscribers.remove(c);
+              channelToMessage.remove(c);
+            }
+          }
         } else { // SUBSCRIBE
-
+          Endpoint target = EventMessage.toSubscribeMessage(message);
+          if (target == null)
+            return;
+          subscribers.insert(target, channel);
         }
       });
+      return buffer;
     }
 
     @Override
@@ -78,7 +94,7 @@ public class EventBusServer {
         } catch (IOException ignored) {}
         for (SelectionKey key : selector.selectedKeys()) {
           if (key.isAcceptable()) {
-            SocketChannel channel = null;
+            SocketChannel channel;
             try {
               channel = ((ServerSocketChannel) key.channel()).accept();
               channel.configureBlocking(false);
@@ -93,7 +109,7 @@ public class EventBusServer {
           int read = 0;
           try {
             read = clientChannel.read(buffer.buffer());
-            buffer.parse();
+            buffer.parse(clientChannel);
           } catch (IOException e) {
             try {
               clientChannel.close();

@@ -1,6 +1,7 @@
 package net.rocketeer.eventsuite;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 public class EventMessage {
   public enum Type {
@@ -21,7 +22,7 @@ public class EventMessage {
     return null;
   }
 
-  public static Endpoint toSubscribeMessage(String message) {
+  public static Endpoint toSubscribeMessage(String message)  {
     Type type = type(message);
     if (type != Type.SUBSCRIBE)
       return null;
@@ -40,12 +41,23 @@ public class EventMessage {
     if (type != Type.PUBLISH)
       return null;
     Gson gson = new Gson();
-    return gson.fromJson(message.substring(1), PublishMessage.class);
+    try {
+      return gson.fromJson(message.substring(1), PublishMessage.class);
+    } catch (JsonSyntaxException e) {
+      return null;
+    }
   }
 
-  private static class PublishMessage {
-    public Endpoint endpoint;
-    String data;
+  public static class PublishMessage {
+    private Endpoint endpoint;
+    private String data;
     public PublishMessage() {}
+    public Endpoint endpoint() {
+      return this.endpoint;
+    }
+
+    public String data() {
+      return this.data;
+    }
   }
 }

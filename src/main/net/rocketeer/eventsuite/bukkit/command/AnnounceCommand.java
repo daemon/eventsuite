@@ -4,8 +4,6 @@ import net.rocketeer.eventsuite.bukkit.EventSuitePlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-import java.util.StringJoiner;
-
 public class AnnounceCommand implements SubCommandExecutor<CommandSender> {
   @Override
   public String commandName() {
