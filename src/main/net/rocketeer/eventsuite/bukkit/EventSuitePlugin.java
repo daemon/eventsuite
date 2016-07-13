@@ -1,15 +1,15 @@
 package net.rocketeer.eventsuite.bukkit;
 
-import net.md_5.bungee.api.ChatColor;
-import net.rocketeer.eventsuite.EndpointEnum;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import net.rocketeer.eventsuite.Endpoint;
+import net.rocketeer.eventsuite.Endpoints;
 import net.rocketeer.eventsuite.EventBus;
-import net.rocketeer.eventsuite.Subscribe;
 import net.rocketeer.eventsuite.bukkit.command.AnnounceCommand;
 import net.rocketeer.eventsuite.bukkit.command.EventSuiteBaseCommand;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.io.IOException;
 
 public class EventSuitePlugin extends JavaPlugin {
   public static EventSuitePlugin instance;
@@ -19,18 +19,23 @@ public class EventSuitePlugin extends JavaPlugin {
   public void onEnable() {
     instance = this;
     this.eventBus = new EventBus();
-//    Bukkit.getScheduler().runTaskAsynchronously(this, this.eventBus::connect);
     this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
     this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", eventBus);
     EventSuiteBaseCommand baseCmd = new EventSuiteBaseCommand();
     baseCmd.registerCommand(new AnnounceCommand());
     this.getCommand("es").setExecutor(baseCmd);
-    this.eventBus.subscribe(EndpointEnum.ANNOUNCE_MESSAGE.get(), this);
+    this.eventBus.subscribe(Subscribers.makeDefault());
   }
 
-  @Subscribe
-  public void test(String message) {
-    this.getServer().broadcastMessage(ChatColor.translateAlternateColorCodes('&', message));
+  public static void announce(String str) {
+    announce(str, "Events");
+  }
+
+  public static void announce(String str, String tag) {
+    str = "&b[&6" + tag + "&b]&f " + str.trim();
+    String bc = ChatColor.translateAlternateColorCodes('&', str);
+    Bukkit.getServer().broadcastMessage(bc);
+    EventSuitePlugin.instance.eventBus().publish(new Endpoint(Endpoints.ANNOUNCE_MESSAGE), str);
   }
 
   public EventBus eventBus() {

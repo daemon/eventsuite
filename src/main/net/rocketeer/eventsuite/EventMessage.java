@@ -37,6 +37,7 @@ public class EventMessage {
     try {
       return gson.fromJson(message.substring(1), PublishMessage.class);
     } catch (JsonSyntaxException e) {
+      e.printStackTrace();
       return null;
     }
   }

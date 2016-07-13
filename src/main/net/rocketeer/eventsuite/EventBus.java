@@ -10,19 +10,22 @@ import net.rocketeer.eventsuite.bukkit.EventSuitePlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
+
 import java.lang.reflect.Method;
 import java.util.List;
 
 public class EventBus implements PluginMessageListener {
-  private final EndpointTrie<Method> callbackMap = new EndpointTrie<>();
+  private final EndpointTrie<Handler> callbackMap = new EndpointTrie<>();
 
-  public void subscribe(Endpoint endpoint, Object callback) {
-    for (Method m : callback.getClass().getDeclaredMethods()) {
-      if (m.isAnnotationPresent(Subscribe.class) && m.getParameterCount() == 1)
+  public void subscribe(Object callback) {
+    for (Method m : callback.getClass().getDeclaredMethods())
+      if (m.isAnnotationPresent(Subscribe.class) && m.getParameterCount() == 1) {
+        Endpoint endpoint = new Endpoint(m.getDeclaredAnnotation(Subscribe.class).value());
+        Handler handler = new Handler(callback, m);
         synchronized (callbackMap) {
-          callbackMap.insert(endpoint, m);
+          callbackMap.insert(endpoint, handler);
         }
-    }
+      }
   }
 
   private void sendRawMessage(String message) {
@@ -63,22 +66,40 @@ public class EventBus implements PluginMessageListener {
     EventMessage.PublishMessage pubMsg = EventMessage.fromPublishMessage(msg);
     if (pubMsg == null)
       return;
-    List<Method> methods;
+    List<Handler> handlers;
     synchronized (callbackMap) {
-      methods = callbackMap.lookup(pubMsg.endpoint());
+      handlers = callbackMap.lookup(pubMsg.endpoint());
     }
-    Gson gson = new Gson();
-    for (Method m : methods) {
+
+    for (Handler h : handlers)
+      h.handle(pubMsg);
+  }
+
+  private static class Handler {
+    private final Method method;
+    private final Object object;
+    private final Gson gson;
+
+    public Handler(Object object, Method method) {
+      this.method = method;
+      this.object = object;
+      this.gson = new Gson();
+    }
+
+    public void handle(EventMessage.PublishMessage pubMsg) {
       Object o;
       try {
-        o = gson.fromJson(pubMsg.data(), m.getParameterTypes()[0]);
+        o = this.gson.fromJson(pubMsg.data(), this.method.getParameterTypes()[0]);
       } catch (JsonSyntaxException e) {
         e.printStackTrace();
-        continue;
+        return;
       }
       try {
-        m.invoke(o);
-      } catch (Exception ignored) {}
+        System.out.println(o.toString());
+        this.method.invoke(this.object, o);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 }
