@@ -4,4 +4,5 @@ public class Endpoints {
   public static final String ANNOUNCE_MESSAGE = "eventsuite.announce";
   public static final String FIND_REQUEST = "eventsuite.find.request";
   public static final String FIND_RESPONSE = "eventsuite.find.response";
+  public static final String TELEPORT_REQUEST = "eventsuite.tp.request";
 }

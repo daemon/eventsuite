@@ -69,7 +69,7 @@ public class EventBus implements PluginMessageListener {
   public void onPluginMessageReceived(String channel, Player player, byte[] message) {
     ByteArrayDataInput input = ByteStreams.newDataInput(message);
     String chan = input.readUTF();
-    if (!chan.equals("eventsuite"))
+    if (!channel.equals("BungeeCord") || !chan.equals("eventsuite"))
       return;
     short length = input.readShort();
     byte[] messageBytes = new byte[length];

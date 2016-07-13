@@ -5,8 +5,11 @@ import net.rocketeer.eventsuite.eventbus.Endpoints;
 import net.rocketeer.eventsuite.eventbus.Subscribe;
 import net.rocketeer.eventsuite.eventbus.message.FindPlayerRequest;
 import net.rocketeer.eventsuite.eventbus.message.FindPlayerResponse;
+import net.rocketeer.eventsuite.eventbus.message.TeleportPlayerRequest;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 public class Subscribers {
@@ -34,6 +37,22 @@ public class Subscribers {
         return;
       if (response.found())
         player.sendMessage(response.playerName() + "[" + response.foundAddress() + "]");
+    }
+
+    @Subscribe(Endpoints.TELEPORT_REQUEST)
+    public void onTeleportRequest(TeleportPlayerRequest request) {
+      Bukkit.getScheduler().runTaskLater(EventSuitePlugin.instance, () -> {
+        Player player = Bukkit.getPlayer(request.playerName);
+        if (player == null)
+          return;
+        World world = Bukkit.getWorld(request.worldName);
+        if (request.worldName.equals(TeleportPlayerRequest.DEFAULT_WORLD))
+          world = player.getWorld();
+        if (world == null)
+          return;
+        Location l = new Location(world, request.x, request.y, request.z);
+        player.teleport(l);
+      }, 60);
     }
   }
 }

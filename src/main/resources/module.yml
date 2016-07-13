@@ -1,0 +1,4 @@
+# An example
+name: pictionary
+commands: ['start', 'end', 'new arena']
+regions: ['arena']
