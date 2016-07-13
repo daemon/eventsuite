@@ -3,39 +3,37 @@ package net.rocketeer.eventsuite;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+
 public class EventMessage {
   public enum Type {
-    SUBSCRIBE('\1'), PUBLISH('\2');
-    public char type;
-    Type(char type) {
+    SUBSCRIBE((byte) 1), PUBLISH((byte) 2);
+    public byte type;
+    Type(byte type) {
       this.type = type;
     }
   }
 
-  public static EventMessage.Type type(String message) {
-    if (message.length() == 0)
+  public static EventMessage.Type type(byte[] message) {
+    if (message.length == 0)
       return null;
-    char c = message.charAt(0);
+    byte b = message[0];
     for (Type type : EventMessage.Type.values())
-      if (c == type.type)
+      if (b == type.type)
         return type;
     return null;
   }
 
-  public static Endpoint fromSubscribeMessage(String message)  {
-    Type type = type(message);
-    if (type != Type.SUBSCRIBE)
-      return null;
-    return new Endpoint(message.substring(1));
-  }
-
-  public static PublishMessage fromPublishMessage(String message) {
+  public static PublishMessage fromPublishMessage(byte[] message) {
     Type type = type(message);
     if (type != Type.PUBLISH)
       return null;
+    String str = new String(Arrays.copyOfRange(message, 1, message.length));
     Gson gson = new Gson();
     try {
-      return gson.fromJson(message.substring(1), PublishMessage.class);
+      return gson.fromJson(str, PublishMessage.class);
     } catch (JsonSyntaxException e) {
       e.printStackTrace();
       return null;
@@ -68,11 +66,17 @@ public class EventMessage {
       return this.data;
     }
 
-    public String toRawMessage() {
+    public byte[] toRawMessage() {
       Gson gson = new Gson();
       try {
-        return Type.PUBLISH.type + gson.toJson(this, this.getClass());
+        byte[] msgArr = gson.toJson(this, this.getClass()).getBytes("UTF8");
+        ByteBuffer buffer = ByteBuffer.allocate(msgArr.length + 1);
+        buffer.put(Type.PUBLISH.type);
+        buffer.put(msgArr);
+        return buffer.array();
       } catch(JsonSyntaxException e) {
+        return null;
+      } catch (UnsupportedEncodingException e) {
         return null;
       }
     }

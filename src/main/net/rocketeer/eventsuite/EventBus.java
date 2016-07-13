@@ -28,7 +28,7 @@ public class EventBus implements PluginMessageListener {
       }
   }
 
-  private void sendRawMessage(String message) {
+  private void sendRawMessage(byte[] message) {
     Player player = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
     if (player == null)
       return;
@@ -36,21 +36,34 @@ public class EventBus implements PluginMessageListener {
     out.writeUTF("Forward");
     out.writeUTF("ALL");
     out.writeUTF("eventsuite");
-    out.writeShort(message.length());
-    out.write(message.getBytes());
+    out.writeShort(message.length);
+    out.write(message);
     player.sendPluginMessage(EventSuitePlugin.instance, "BungeeCord", out.toByteArray());
   }
 
+  // Exclude caller
   public <T> void publish(Endpoint endpoint, T data) {
     EventMessage.PublishMessage message = EventMessage.toPublishMessage(endpoint, data);
     if (message == null)
       return;
-    String rawMessage = message.toRawMessage();
+    byte[] rawMessage = message.toRawMessage();
     if (rawMessage == null)
       return;
     this.sendRawMessage(rawMessage);
   }
 
+  // Caller inclusive
+  public <T> void publishAll(Endpoint endpoint, T data) {
+    List<Handler> handlers;
+    synchronized (callbackMap) {
+      handlers = callbackMap.lookup(endpoint);
+    }
+    for (Handler h : handlers)
+      h.invoke(data);
+    this.publish(endpoint, data);
+  }
+
+  // TODO async
   @Override
   public void onPluginMessageReceived(String channel, Player player, byte[] message) {
     ByteArrayDataInput input = ByteStreams.newDataInput(message);
@@ -60,10 +73,9 @@ public class EventBus implements PluginMessageListener {
     short length = input.readShort();
     byte[] messageBytes = new byte[length];
     input.readFully(messageBytes);
-    String msg = new String(messageBytes);
-    if (EventMessage.type(msg) != EventMessage.Type.PUBLISH)
+    if (EventMessage.type(messageBytes) != EventMessage.Type.PUBLISH)
       return;
-    EventMessage.PublishMessage pubMsg = EventMessage.fromPublishMessage(msg);
+    EventMessage.PublishMessage pubMsg = EventMessage.fromPublishMessage(messageBytes);
     if (pubMsg == null)
       return;
     List<Handler> handlers;
@@ -86,6 +98,12 @@ public class EventBus implements PluginMessageListener {
       this.gson = new Gson();
     }
 
+    public void invoke(Object param) {
+      try {
+        this.method.invoke(this.object, param);
+      } catch (Exception ignored) {}
+    }
+
     public void handle(EventMessage.PublishMessage pubMsg) {
       Object o;
       try {
@@ -94,12 +112,8 @@ public class EventBus implements PluginMessageListener {
         e.printStackTrace();
         return;
       }
-      try {
-        System.out.println(o.toString());
-        this.method.invoke(this.object, o);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+
+      this.invoke(o);
     }
   }
 }
