@@ -22,21 +22,14 @@ public class EventMessage {
     return null;
   }
 
-  public static Endpoint toSubscribeMessage(String message)  {
+  public static Endpoint fromSubscribeMessage(String message)  {
     Type type = type(message);
     if (type != Type.SUBSCRIBE)
       return null;
-    String[] tokens = message.substring(1).split("\\.");
-    boolean inclusive = false;
-    if (tokens.length > 0) {
-      String lastStr = tokens[tokens.length - 1];
-      inclusive = lastStr.length() == 1 && lastStr.charAt(0) == '*';
-    }
-
-    return new Endpoint(tokens, inclusive);
+    return new Endpoint(message.substring(1));
   }
 
-  public static PublishMessage toPublishMessage(String message) {
+  public static PublishMessage fromPublishMessage(String message) {
     Type type = type(message);
     if (type != Type.PUBLISH)
       return null;
@@ -48,16 +41,39 @@ public class EventMessage {
     }
   }
 
+  public static <T> PublishMessage toPublishMessage(Endpoint endpoint, T data) {
+    Gson gson = new Gson();
+    try {
+      String json = gson.toJson(data, data.getClass());
+      return new PublishMessage(endpoint, json);
+    } catch(JsonSyntaxException e) {
+      return null;
+    }
+  }
+
   public static class PublishMessage {
     private Endpoint endpoint;
     private String data;
     public PublishMessage() {}
+    public PublishMessage(Endpoint endpoint, String data) {
+      this.data = data;
+      this.endpoint = endpoint;
+    }
     public Endpoint endpoint() {
       return this.endpoint;
     }
 
     public String data() {
       return this.data;
+    }
+
+    public String toRawMessage() {
+      Gson gson = new Gson();
+      try {
+        return Type.PUBLISH.type + gson.toJson(this, this.getClass());
+      } catch(JsonSyntaxException e) {
+        return null;
+      }
     }
   }
 }

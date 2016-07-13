@@ -6,7 +6,7 @@ import java.nio.channels.SocketChannel;
 public class StringNetBuffer {
   public static byte TERMINAL = '\0';
   ByteBuffer buffer;
-  private StringBuilder builder;
+  private StringBuilder builder = new StringBuilder();
   private Callback callback;
   public StringNetBuffer() {
     this(256);
@@ -31,11 +31,12 @@ public class StringNetBuffer {
       while (this.buffer.hasRemaining()) {
         byte c = this.buffer.get();
         if (c != TERMINAL) {
-          builder.append(c);
+          this.builder.append(c);
           continue;
         }
 
-        String str = builder.toString();
+        String str = this.builder.toString();
+        this.builder.setLength(0);
         if (this.callback != null)
           this.callback.onMessage(channel, str);
       }

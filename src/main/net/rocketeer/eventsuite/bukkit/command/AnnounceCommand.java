@@ -1,5 +1,6 @@
 package net.rocketeer.eventsuite.bukkit.command;
 
+import net.rocketeer.eventsuite.EndpointEnum;
 import net.rocketeer.eventsuite.bukkit.EventSuitePlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -25,7 +26,7 @@ public class AnnounceCommand implements SubCommandExecutor<CommandSender> {
       return false;
     strings[0] = "&b[&6EventSuite&b]";
     strings[1] = "&f" + strings[1];
-    EventSuitePlugin.instance.getAnnounceClient().broadcastMessage(String.join(" ", strings));
+    EventSuitePlugin.instance.eventBus().publish(EndpointEnum.ANNOUNCE_MESSAGE.get(), String.join(" ", strings));
     return true;
   }
 }

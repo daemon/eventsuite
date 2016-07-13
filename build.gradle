@@ -29,21 +29,9 @@ task bukkitPlugin(type: Jar) {
     }
     from (sourceSets.main.output) {
         include "net/rocketeer/eventsuite/**"
-        exclude "net/rocketeer/eventsuite/bungeecord/**"
+        // exclude "net/rocketeer/eventsuite/bungeecord/**"
     }
     from ('src/main/resources/bukkit') {
-        include "config.yml"
-        include "plugin.yml"
-    }
-}
-
-task bungeeCordPlugin(type: Jar) {
-    baseName = 'eventsuite-bc'
-    from (sourceSets.main.output) {
-        include "net/rocketeer/eventsuite/**"
-        exclude "net/rocketeer/eventsuite/bukkit/**"
-    }
-    from ('src/main/resources/bungee') {
         include "config.yml"
         include "plugin.yml"
     }
