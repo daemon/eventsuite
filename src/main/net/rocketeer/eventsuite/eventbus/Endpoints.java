@@ -1,4 +1,4 @@
-package net.rocketeer.eventsuite;
+package net.rocketeer.eventsuite.eventbus;
 
 public class Endpoints {
   public static final String ANNOUNCE_MESSAGE = "eventsuite.announce";

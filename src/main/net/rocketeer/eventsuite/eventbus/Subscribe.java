@@ -1,4 +1,4 @@
-package net.rocketeer.eventsuite;
+package net.rocketeer.eventsuite.eventbus;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

@@ -1,4 +1,4 @@
-package net.rocketeer.eventsuite.bukkit;
+package net.rocketeer.eventsuite;
 
 import org.bukkit.configuration.file.FileConfiguration;
 

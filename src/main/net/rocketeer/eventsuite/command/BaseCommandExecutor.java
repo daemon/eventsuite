@@ -1,4 +1,4 @@
-package net.rocketeer.eventsuite.bukkit.command;
+package net.rocketeer.eventsuite.command;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;

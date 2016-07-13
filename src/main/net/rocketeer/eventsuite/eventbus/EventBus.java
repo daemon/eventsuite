@@ -1,4 +1,4 @@
-package net.rocketeer.eventsuite;
+package net.rocketeer.eventsuite.eventbus;
 
 import com.google.common.collect.Iterables;
 import com.google.common.io.ByteArrayDataInput;
@@ -6,7 +6,8 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import net.rocketeer.eventsuite.bukkit.EventSuitePlugin;
+import net.rocketeer.eventsuite.EventSuitePlugin;
+import net.rocketeer.eventsuite.eventbus.message.EventMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;

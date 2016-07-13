@@ -1,17 +1,11 @@
-package net.rocketeer.eventsuite.bukkit;
+package net.rocketeer.eventsuite;
 
-import com.google.common.collect.Iterables;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import net.rocketeer.eventsuite.Endpoint;
-import net.rocketeer.eventsuite.Endpoints;
-import net.rocketeer.eventsuite.EventBus;
-import net.rocketeer.eventsuite.bukkit.command.AnnounceCommand;
-import net.rocketeer.eventsuite.bukkit.command.EventSuiteBaseCommand;
-import net.rocketeer.eventsuite.bukkit.command.FindCommand;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
+import net.rocketeer.eventsuite.eventbus.Endpoint;
+import net.rocketeer.eventsuite.eventbus.Endpoints;
+import net.rocketeer.eventsuite.eventbus.EventBus;
+import net.rocketeer.eventsuite.command.AnnounceCommand;
+import net.rocketeer.eventsuite.command.EventSuiteBaseCommand;
+import net.rocketeer.eventsuite.command.FindCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class EventSuitePlugin extends JavaPlugin {

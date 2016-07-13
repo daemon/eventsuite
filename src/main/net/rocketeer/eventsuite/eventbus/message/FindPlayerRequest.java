@@ -1,4 +1,4 @@
-package net.rocketeer.eventsuite.bukkit;
+package net.rocketeer.eventsuite.eventbus.message;
 
 public class FindPlayerRequest {
   private String requesterName;

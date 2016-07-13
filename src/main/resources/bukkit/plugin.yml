@@ -1,5 +1,5 @@
 name: eventsuite
-main: net.rocketeer.eventsuite.bukkit.EventSuitePlugin
+main: net.rocketeer.eventsuite.EventSuitePlugin
 version: 0.0.1
 # depend: [Vault,WorldGuard]
 commands:

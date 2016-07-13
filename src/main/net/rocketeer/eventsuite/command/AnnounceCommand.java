@@ -1,6 +1,6 @@
-package net.rocketeer.eventsuite.bukkit.command;
+package net.rocketeer.eventsuite.command;
 
-import net.rocketeer.eventsuite.bukkit.EventSuitePlugin;
+import net.rocketeer.eventsuite.EventSuitePlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 

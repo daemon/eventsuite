@@ -1,8 +1,10 @@
-package net.rocketeer.eventsuite.bukkit;
+package net.rocketeer.eventsuite;
 
-import net.rocketeer.eventsuite.Endpoint;
-import net.rocketeer.eventsuite.Endpoints;
-import net.rocketeer.eventsuite.Subscribe;
+import net.rocketeer.eventsuite.eventbus.Endpoint;
+import net.rocketeer.eventsuite.eventbus.Endpoints;
+import net.rocketeer.eventsuite.eventbus.Subscribe;
+import net.rocketeer.eventsuite.eventbus.message.FindPlayerRequest;
+import net.rocketeer.eventsuite.eventbus.message.FindPlayerResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;

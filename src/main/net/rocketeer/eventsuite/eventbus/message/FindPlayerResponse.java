@@ -1,6 +1,5 @@
-package net.rocketeer.eventsuite.bukkit;
+package net.rocketeer.eventsuite.eventbus.message;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class FindPlayerResponse {

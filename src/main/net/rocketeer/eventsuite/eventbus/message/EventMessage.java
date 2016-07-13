@@ -1,7 +1,8 @@
-package net.rocketeer.eventsuite;
+package net.rocketeer.eventsuite.eventbus.message;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import net.rocketeer.eventsuite.eventbus.Endpoint;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;

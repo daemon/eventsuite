@@ -1,9 +1,9 @@
-package net.rocketeer.eventsuite.bukkit.command;
+package net.rocketeer.eventsuite.command;
 
-import net.rocketeer.eventsuite.Endpoint;
-import net.rocketeer.eventsuite.Endpoints;
-import net.rocketeer.eventsuite.bukkit.EventSuitePlugin;
-import net.rocketeer.eventsuite.bukkit.FindPlayerRequest;
+import net.rocketeer.eventsuite.eventbus.Endpoint;
+import net.rocketeer.eventsuite.eventbus.Endpoints;
+import net.rocketeer.eventsuite.EventSuitePlugin;
+import net.rocketeer.eventsuite.eventbus.message.FindPlayerRequest;
 import org.bukkit.command.Command;
 import org.bukkit.entity.Player;
 
