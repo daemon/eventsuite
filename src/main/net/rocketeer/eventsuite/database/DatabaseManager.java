@@ -34,8 +34,7 @@ public class DatabaseManager {
     this.source.setDriverClass("com.mysql.jdbc.Driver");
   }
 
-  public Connection getConnection() throws SQLException
-  {
+  public Connection getConnection() throws SQLException {
     return this.source.getConnection();
   }
 

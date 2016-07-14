@@ -94,9 +94,6 @@ public class SqlStreamExecutor {
     }
   }
 
-  private void delimiter(CharBuffer buffer) {
-  }
-
   public void execute() {
     StringBuilder queryBuilder = new StringBuilder();
     this.parseStack.push(queryBuilder);

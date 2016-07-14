@@ -13,6 +13,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
 
 import java.beans.PropertyVetoException;
+import java.io.IOException;
+import java.sql.SQLException;
 
 public class EventSuitePlugin extends JavaPlugin {
   public static EventSuitePlugin instance;
@@ -28,8 +30,12 @@ public class EventSuitePlugin extends JavaPlugin {
     this.manager = manager;
     try {
       this.databaseManager = new DatabaseManager();
-    } catch (PropertyVetoException e) {
-      System.out.println("Couldn't connect to database");
+      this.databaseManager.createDefaultTables();
+    } catch (PropertyVetoException | SQLException e) {
+      Bukkit.getLogger().warning("Couldn't connect to database");
+      return;
+    } catch (IOException e) {
+      Bukkit.getLogger().warning("Schema file not present in .jar");
       return;
     }
     this.configManager = new ConfigManager(this.getConfig());

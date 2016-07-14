@@ -35,6 +35,10 @@ task bukkitPlugin(type: Jar) {
         include "config.yml"
         include "plugin.yml"
     }
+    from ('src/main/resources') {
+        include "config.yml"
+        include "schema.sql"
+    }
 }
 
 dependencies {
