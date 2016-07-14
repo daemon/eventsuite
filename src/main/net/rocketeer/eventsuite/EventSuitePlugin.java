@@ -1,6 +1,7 @@
 package net.rocketeer.eventsuite;
 
 import net.rocketeer.eventsuite.command.TeleportCommand;
+import net.rocketeer.eventsuite.database.DatabaseManager;
 import net.rocketeer.eventsuite.eventbus.Endpoint;
 import net.rocketeer.eventsuite.eventbus.Endpoints;
 import net.rocketeer.eventsuite.eventbus.EventBus;
@@ -11,33 +12,60 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
 
+import java.beans.PropertyVetoException;
+
 public class EventSuitePlugin extends JavaPlugin {
   public static EventSuitePlugin instance;
   private EventBus eventBus;
   private String serverName;
+  private ConfigManager configManager;
+  private DatabaseManager databaseManager;
   private BungeeServerManager manager;
 
-  @Override
-  public void onEnable() {
-    instance = this;
+  private void setupManagers() {
     this.eventBus = new EventBus();
     BungeeServerManager manager = new BungeeServerManager();
     this.manager = manager;
+    try {
+      this.databaseManager = new DatabaseManager();
+    } catch (PropertyVetoException e) {
+      System.out.println("Couldn't connect to database");
+      return;
+    }
+    this.configManager = new ConfigManager(this.getConfig());
     Bukkit.getPluginManager().registerEvents(manager, this);
     Messenger messenger = this.getServer().getMessenger();
     messenger.registerOutgoingPluginChannel(this, "BungeeCord");
     messenger.registerIncomingPluginChannel(this, "BungeeCord", eventBus);
     messenger.registerIncomingPluginChannel(this, "BungeeCord", manager);
+    this.eventBus.subscribe(Subscribers.makeDefault());
+  }
+
+  private void setupCommands() {
     EventSuiteBaseCommand baseCmd = new EventSuiteBaseCommand();
     baseCmd.registerCommand(new AnnounceCommand());
     baseCmd.registerPlayerCommand(new FindCommand());
     baseCmd.registerCommand(new TeleportCommand());
     this.getCommand("es").setExecutor(baseCmd);
-    this.eventBus.subscribe(Subscribers.makeDefault());
+  }
+
+  @Override
+  public void onEnable() {
+    instance = this;
+    this.setupManagers();
+    this.setupCommands();
   }
 
   public BungeeServerManager bungeeManager() {
     return this.manager;
+  }
+
+  public ConfigManager configManager() {
+    return this.configManager;
+  }
+
+  public DatabaseManager databaseManager() {
+    return this.databaseManager();
   }
 
   public static void announce(String str) {
