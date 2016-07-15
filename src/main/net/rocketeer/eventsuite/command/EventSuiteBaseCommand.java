@@ -8,4 +8,19 @@ public class EventSuiteBaseCommand extends BaseCommandExecutor {
   public boolean defaultOnCommand(CommandSender sender, Command command, String s, String[] strings) {
     return true;
   }
+
+  @Override
+  public String commandName() {
+    return "es";
+  }
+
+  @Override
+  public String permissionName() {
+    return "eventsuite.cmd";
+  }
+
+  @Override
+  public String usage() {
+    return "/es";
+  }
 }

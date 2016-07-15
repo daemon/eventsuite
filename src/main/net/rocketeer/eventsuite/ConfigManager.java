@@ -2,6 +2,8 @@ package net.rocketeer.eventsuite;
 
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.io.File;
+
 public class ConfigManager {
   private final String hostname;
   private final String database;
@@ -35,5 +37,9 @@ public class ConfigManager {
 
   public int sqlPort() {
     return this.port;
+  }
+
+  public File eventModuleDirectory() {
+    return null;
   }
 }

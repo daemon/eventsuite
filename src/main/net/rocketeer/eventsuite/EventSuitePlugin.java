@@ -1,13 +1,12 @@
 package net.rocketeer.eventsuite;
 
-import net.rocketeer.eventsuite.command.TeleportCommand;
+import net.rocketeer.eventsuite.api.EventModule;
+import net.rocketeer.eventsuite.command.*;
 import net.rocketeer.eventsuite.database.DatabaseManager;
 import net.rocketeer.eventsuite.eventbus.Endpoint;
 import net.rocketeer.eventsuite.eventbus.Endpoints;
 import net.rocketeer.eventsuite.eventbus.EventBus;
-import net.rocketeer.eventsuite.command.AnnounceCommand;
-import net.rocketeer.eventsuite.command.EventSuiteBaseCommand;
-import net.rocketeer.eventsuite.command.FindCommand;
+import net.rocketeer.eventsuite.eventbus.Subscribers;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
@@ -15,6 +14,7 @@ import org.bukkit.plugin.messaging.Messenger;
 import java.beans.PropertyVetoException;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 
 public class EventSuitePlugin extends JavaPlugin {
   public static EventSuitePlugin instance;
@@ -23,6 +23,16 @@ public class EventSuitePlugin extends JavaPlugin {
   private ConfigManager configManager;
   private DatabaseManager databaseManager;
   private BungeeServerManager manager;
+  private EventSuiteBaseCommand baseCmd;
+
+  // TODO ModuleManager?
+  public ModuleBaseCommand registerModule(EventModule module) {
+    String name = module.getConfig().getString("eventsuite.name");
+    List<String> commands = module.getConfig().getStringList("eventsuite.commands");
+    ModuleBaseCommand mbc = new ModuleBaseCommand(module);
+    this.baseCmd.registerCommand(mbc);
+    return mbc;
+  }
 
   private void setupManagers() {
     this.configManager = new ConfigManager(this.getConfig());
@@ -48,7 +58,7 @@ public class EventSuitePlugin extends JavaPlugin {
   }
 
   private void setupCommands() {
-    EventSuiteBaseCommand baseCmd = new EventSuiteBaseCommand();
+    this.baseCmd = new EventSuiteBaseCommand();
     baseCmd.registerCommand(new AnnounceCommand());
     baseCmd.registerPlayerCommand(new FindCommand());
     baseCmd.registerCommand(new TeleportCommand());

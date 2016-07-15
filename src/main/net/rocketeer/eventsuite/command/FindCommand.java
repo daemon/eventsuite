@@ -25,9 +25,9 @@ public class FindCommand implements SubCommandExecutor<Player> {
 
   @Override
   public boolean onCommand(Player sender, Command command, String label, String[] args) {
-    if (args.length <= 1)
+    if (args.length == 0)
       return false;
-    String name = args[1];
+    String name = args[0];
     FindPlayerRequest request = new FindPlayerRequest(sender.getName(), name);
     EventSuitePlugin.instance.eventBus().publishAll(new Endpoint(Endpoints.FIND_REQUEST), request);
     return true;

@@ -1,5 +1,6 @@
-package net.rocketeer.eventsuite;
+package net.rocketeer.eventsuite.eventbus;
 
+import net.rocketeer.eventsuite.EventSuitePlugin;
 import net.rocketeer.eventsuite.eventbus.Endpoint;
 import net.rocketeer.eventsuite.eventbus.Endpoints;
 import net.rocketeer.eventsuite.eventbus.Subscribe;

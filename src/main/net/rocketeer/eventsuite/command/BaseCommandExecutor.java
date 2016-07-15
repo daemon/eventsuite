@@ -6,10 +6,11 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class BaseCommandExecutor implements CommandExecutor {
+public abstract class BaseCommandExecutor implements CommandExecutor, SubCommandExecutor<CommandSender> {
   private Map<String, SubCommandExecutor<Player>> playerCmdMap = new HashMap<>();
   private Map<String, SubCommandExecutor<CommandSender>> generalCmdMap = new HashMap<>();
 
@@ -29,6 +30,7 @@ public abstract class BaseCommandExecutor implements CommandExecutor {
       return this.defaultOnCommand(sender, command, s, strings);
     SubCommandExecutor<CommandSender> executor = this.generalCmdMap.get(strings[0].toLowerCase());
     SubCommandExecutor<Player> playerExecutor = this.playerCmdMap.get(strings[0].toLowerCase());
+    strings = Arrays.copyOfRange(strings, 1, strings.length);
     if (executor == null && playerExecutor == null)
       return this.defaultOnCommand(sender, command, s, strings);
     else if (executor != null) {
@@ -47,11 +49,18 @@ public abstract class BaseCommandExecutor implements CommandExecutor {
   }
 
   public void registerPlayerCommand(SubCommandExecutor<Player> executor) {
-    this.playerCmdMap.put(executor.commandName(), executor);
+    this.playerCmdMap.put(executor.commandName(), executor); // TODO check if exists already
   }
 
   public void registerCommand(SubCommandExecutor<CommandSender> executor) {
-    this.generalCmdMap.put(executor.commandName(), executor);
+    this.generalCmdMap.put(executor.commandName(), executor); // TODO check if exists already
   }
 
+  public void unregisterPlayerCommand(SubCommandExecutor<Player> executor) {
+    this.playerCmdMap.remove(executor.commandName());
+  }
+
+  public void unregisterCommand(SubCommandExecutor<CommandSender> executor) {
+    this.generalCmdMap.remove(executor.commandName());
+  }
 }

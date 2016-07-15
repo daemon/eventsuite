@@ -25,22 +25,22 @@ public class TeleportCommand implements SubCommandExecutor<CommandSender> {
 
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-    if (args.length < 6)
+    if (args.length < 5)
       return false;
     String worldName = TeleportPlayerRequest.DEFAULT_WORLD;
-    if (args.length >= 7)
-      worldName = args[6];
-    String playerName = args[1];
+    if (args.length >= 6)
+      worldName = args[5];
+    String playerName = args[0];
     double x, y, z;
     try {
-      x = Double.parseDouble(args[2]);
-      y = Double.parseDouble(args[3]);
-      z = Double.parseDouble(args[4]);
+      x = Double.parseDouble(args[1]);
+      y = Double.parseDouble(args[2]);
+      z = Double.parseDouble(args[3]);
     } catch (Exception e) {
       return false;
     }
 
-    String serverName = args[5];
+    String serverName = args[4];
     Player p = Bukkit.getPlayer(playerName);
     if (p == null) {
       sender.sendMessage(ChatColor.RED + "Couldn't find player on this server");

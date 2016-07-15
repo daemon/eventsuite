@@ -21,9 +21,8 @@ public class AnnounceCommand implements SubCommandExecutor<CommandSender> {
   }
 
   public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
-    if (strings.length <= 1)
+    if (strings.length == 0)
       return false;
-    strings[0] = "";
     EventSuitePlugin.announce(String.join(" ", strings).trim());
     return true;
   }
