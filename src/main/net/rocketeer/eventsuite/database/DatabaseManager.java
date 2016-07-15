@@ -40,7 +40,7 @@ public class DatabaseManager {
 
   public void createDefaultTables() throws SQLException, IOException {
     try (Connection c = this.getConnection();
-         InputStream in = this.getClass().getResourceAsStream("schema.sql")) {
+         InputStream in = this.getClass().getResourceAsStream("/schema.sql")) {
       new SqlStreamExecutor(c, in).execute();
     }
   }

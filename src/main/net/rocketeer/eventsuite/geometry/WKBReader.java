@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteOrder;
 
-public class WKBReader {
+public class WKBReader implements AutoCloseable {
   private final boolean reverseBytes;
   DataInputStream in;
 
@@ -34,5 +34,11 @@ public class WKBReader {
     if (type != 1)
       return null;
     return new Point(this.in.readDouble(), this.in.readDouble());
+  }
+
+  public void close() {
+    try {
+      this.in.close();
+    } catch (IOException e) {}
   }
 }

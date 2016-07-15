@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.nio.CharBuffer;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Stack;
 
 // Adds delimiter support for executing an SQL file
@@ -15,7 +16,7 @@ public class SqlStreamExecutor {
   private final InputStreamReader in;
   private String delimiter = ";";
   private static final String DELIMITER_KEYWORD = "DELIMITER";
-  private Stack<StringBuilder> parseStack;
+  private Stack<StringBuilder> parseStack = new Stack<>();
   private State state = State.QUERY_BUILD;
   private int delimCheckIndex = 0;
   private int delimChangeIndex = 0;
@@ -26,8 +27,8 @@ public class SqlStreamExecutor {
   }
 
   private void executeStatement(String statement) {
-    try {
-      this.connection.createStatement().execute(statement);
+    try (Statement stmt = this.connection.createStatement()) {
+      stmt.execute(statement);
     } catch (SQLException e) {}
   }
 
@@ -42,10 +43,10 @@ public class SqlStreamExecutor {
       this.parseStack.peek().append(c);
       if (c == this.delimiter.charAt(0)) {
         this.state = State.DELIMITER_CHECK;
-        ++this.delimCheckIndex;
+        ++this.delimChangeIndex;
       } else {
         this.state = State.DELIMITER_CHANGE;
-        ++this.delimChangeIndex;
+        ++this.delimCheckIndex;
       }
       break;
     case DELIMITER_CHANGE:
@@ -72,7 +73,7 @@ public class SqlStreamExecutor {
         this.executeStatement(this.parseStack.pop().toString());
         this.parseStack.push(new StringBuilder());
         this.doParse(c);
-      } else if (DELIMITER_KEYWORD.charAt(this.delimChangeIndex) == c) {
+      } else if (this.delimiter.charAt(this.delimChangeIndex) == c) {
         ++this.delimChangeIndex;
         this.parseStack.peek().append(c);
       } else {
@@ -99,13 +100,12 @@ public class SqlStreamExecutor {
     this.parseStack.push(queryBuilder);
     CharBuffer buffer = CharBuffer.allocate(256);
     try {
-      this.in.read(buffer);
-    } catch (IOException e) {
-      return;
-    }
-    buffer.flip();
-    while (buffer.hasRemaining()) {
-      this.doParse(buffer.get());
-    }
+      while (this.in.read(buffer) != -1) {
+        buffer.flip();
+        while (buffer.hasRemaining())
+          this.doParse(buffer.get());
+        buffer.clear();
+      }
+    } catch (IOException e) {}
   }
 }

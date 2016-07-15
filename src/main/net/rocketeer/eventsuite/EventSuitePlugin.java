@@ -25,6 +25,7 @@ public class EventSuitePlugin extends JavaPlugin {
   private BungeeServerManager manager;
 
   private void setupManagers() {
+    this.configManager = new ConfigManager(this.getConfig());
     this.eventBus = new EventBus();
     BungeeServerManager manager = new BungeeServerManager();
     this.manager = manager;
@@ -38,7 +39,6 @@ public class EventSuitePlugin extends JavaPlugin {
       Bukkit.getLogger().warning("Schema file not present in .jar");
       return;
     }
-    this.configManager = new ConfigManager(this.getConfig());
     Bukkit.getPluginManager().registerEvents(manager, this);
     Messenger messenger = this.getServer().getMessenger();
     messenger.registerOutgoingPluginChannel(this, "BungeeCord");
@@ -58,6 +58,7 @@ public class EventSuitePlugin extends JavaPlugin {
   @Override
   public void onEnable() {
     instance = this;
+    this.saveDefaultConfig();
     this.setupManagers();
     this.setupCommands();
   }

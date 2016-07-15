@@ -1,7 +1,7 @@
 name: eventsuite
 main: net.rocketeer.eventsuite.EventSuitePlugin
 version: 0.0.1
-# depend: [Vault,WorldGuard]
+depend: [WorldEdit]
 commands:
     es:
         description: Base command for all EventSuite-related things.

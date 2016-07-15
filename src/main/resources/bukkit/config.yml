@@ -1,1 +1,5 @@
-
+sql-database: eventsuite
+sql-hostname: 127.0.0.1
+sql-port: 3306
+sql-user: user
+sql-password: password
