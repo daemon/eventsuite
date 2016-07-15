@@ -34,13 +34,17 @@ public class EventSuitePlugin extends JavaPlugin {
     return mbc;
   }
 
+  public BaseCommandExecutor baseCommand() {
+    return this.baseCmd;
+  }
+
   private void setupManagers() {
     this.configManager = new ConfigManager(this.getConfig());
     this.eventBus = new EventBus();
     BungeeServerManager manager = new BungeeServerManager();
     this.manager = manager;
     try {
-      this.databaseManager = new DatabaseManager();
+      this.databaseManager = new DatabaseManager(this.configManager);
       this.databaseManager.createDefaultTables();
     } catch (PropertyVetoException | SQLException e) {
       Bukkit.getLogger().warning("Couldn't connect to database");

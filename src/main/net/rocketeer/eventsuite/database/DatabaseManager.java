@@ -14,8 +14,8 @@ public class DatabaseManager {
   private final ComboPooledDataSource source;
   private final ConfigManager cfgManager;
 
-  public DatabaseManager() throws PropertyVetoException {
-    this.cfgManager = EventSuitePlugin.instance.configManager();
+  public DatabaseManager(ConfigManager cfgManager) throws PropertyVetoException {
+    this.cfgManager = cfgManager;
     this.source = new ComboPooledDataSource();
     this.source.setMaxStatements(128);
     this.source.setMaxStatementsPerConnection(16);

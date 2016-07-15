@@ -34,7 +34,6 @@ task bukkitPlugin(type: Jar) {
     }
     from (sourceSets.main.output) {
         include "net/rocketeer/eventsuite/**"
-        // exclude "net/rocketeer/eventsuite/bungeecord/**"
     }
     from ('src/main/resources/bukkit') {
         include "config.yml"
