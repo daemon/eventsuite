@@ -1,6 +1,7 @@
 package net.rocketeer.eventsuite;
 
 import net.rocketeer.eventsuite.api.EventModule;
+import net.rocketeer.eventsuite.arena.ArenaCreationWizard;
 import net.rocketeer.eventsuite.command.*;
 import net.rocketeer.eventsuite.database.DatabaseManager;
 import net.rocketeer.eventsuite.eventbus.Endpoint;
@@ -66,6 +67,7 @@ public class EventSuitePlugin extends JavaPlugin {
     baseCmd.registerCommand(new AnnounceCommand());
     baseCmd.registerPlayerCommand(new FindCommand());
     baseCmd.registerCommand(new TeleportCommand());
+    baseCmd.registerPlayerCommand(new ArenaCreateCommand());
     this.getCommand("es").setExecutor(baseCmd);
   }
 
@@ -75,6 +77,7 @@ public class EventSuitePlugin extends JavaPlugin {
     this.saveDefaultConfig();
     this.setupManagers();
     this.setupCommands();
+    ArenaCreationWizard.init();
   }
 
   public BungeeServerManager bungeeManager() {
@@ -86,7 +89,7 @@ public class EventSuitePlugin extends JavaPlugin {
   }
 
   public DatabaseManager databaseManager() {
-    return this.databaseManager();
+    return this.databaseManager;
   }
 
   public static void announce(String str) {

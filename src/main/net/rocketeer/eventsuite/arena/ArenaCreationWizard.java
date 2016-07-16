@@ -11,13 +11,11 @@ import net.rocketeer.eventsuite.EventSuitePlugin;
 import net.rocketeer.eventsuite.MessagePrompt;
 import net.rocketeer.eventsuite.command.SubCommandExecutor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -87,12 +85,15 @@ public class ArenaCreationWizard implements Listener {
         this.baseRegion = region;
       else
         this.regions.add(region);
-      MessagePrompt.success(this.player, "Successfully created region %s for %s", name, this.arenaName);
+      MessagePrompt.success(this.player, "Created region %s for %s", name, this.arenaName);
     } else if (this.currentStep == Step.POINT_SELECTION) {
       String name = this.pointNames.poll();
       Arena.NamedPoint namedPoint = new Arena.NamedPoint(name, this.player.getLocation().toVector());
       this.points.add(namedPoint);
-      MessagePrompt.success(this.player, "Successfully created point %s for %s", name, this.arenaName);
+      MessagePrompt.success(this.player, "Created point %s for %s", name, this.arenaName);
+    } else {
+      MessagePrompt.error(this.player, "You have nothing to confirm!");
+      return;
     }
 
     if (this.currentStepIterator.hasNext()) {
@@ -106,7 +107,7 @@ public class ArenaCreationWizard implements Listener {
     this.storedArena = new Arena(this.arenaName, serverName, this.player.getWorld(), this.baseRegion);
     this.storedArena.addPoints(this.points);
     this.storedArena.addRegions(this.regions);
-    MessagePrompt.success(this.player, "Successfully created %s", this.arenaName);
+    MessagePrompt.success(this.player, "Created arena %s", this.arenaName);
     if (this.callback != null)
       this.callback.onFinish(this.storedArena);
   }
@@ -152,10 +153,12 @@ public class ArenaCreationWizard implements Listener {
   }
 
   public void run() {
+    arenaWizards.put(this.player, this);
     this.prompt(this.currentStep);
+    this.currentStepIterator = this.steps.listIterator();
   }
 
-  public void init() {
+  public static void init() {
     EventSuitePlugin plugin = EventSuitePlugin.instance;
     Bukkit.getPluginManager().registerEvents(new Listener(), plugin);
     plugin.baseCommand().registerPlayerCommand(new ConfirmCommand());
@@ -219,7 +222,7 @@ public class ArenaCreationWizard implements Listener {
         return true;
       }
       arenaWizards.remove(sender);
-      MessagePrompt.success(sender, "Successfully cancelled creating arena.");
+      MessagePrompt.success(sender, "Cancelled creating arena.");
       return true;
     }
   }
@@ -242,7 +245,7 @@ public class ArenaCreationWizard implements Listener {
     }
   }
 
-  public static interface Callback {
+  public interface Callback {
     void onFinish(Arena arena);
   }
 }

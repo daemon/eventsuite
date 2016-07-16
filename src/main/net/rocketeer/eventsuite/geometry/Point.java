@@ -29,6 +29,10 @@ public class Point {
     return new ByteArrayInputStream(buffer.array());
   }
 
+  public String toString() {
+    return String.format("POINT(%s %s)", this.x, this.y);
+  }
+
   public static CuboidRegion from(World world, Point xz1, Point xz2, Point y1, Point y2) {
     Vector vec1 = new Vector(xz1.x, y1.y, xz1.y);
     Vector vec2 = new Vector(xz2.x, y2.y, xz2.y);

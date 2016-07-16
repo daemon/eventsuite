@@ -25,7 +25,8 @@ public class ArenaDatabase {
       "arena.base_region_id=region.id WHERE arena.name=?";
   private static final String findRegionsStmt = "SELECT region_id, name, xz1, xz2, y1, y2 FROM arena_region_assoc " +
       "INNER JOIN region ON region.id=region_id WHERE arena_id=?";
-  private static final String insertArenaCallStmt = "{call InsertArena(?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+  private static final String insertArenaCallStmt = "{call InsertArena(?, ?, ?, GeomFromText(?), GeomFromText(?), " +
+      "GeomFromText(?), GeomFromText(?), ?)}";
   private static final String[] TABLES = {"arena", "arena_point_assoc", "arena_region_assoc", "server", "world", "point", "region"};
 
   public ArenaDatabase(DatabaseManager manager) {
@@ -45,7 +46,6 @@ public class ArenaDatabase {
   }
 
   private Arena readArenaRs(ResultSet rs) throws SQLException, IOException {
-    int arenaId = rs.getInt(1);
     String serverName = rs.getString(2);
     String worldName = rs.getString(3);
     String regionName = rs.getString(4);
@@ -73,30 +73,23 @@ public class ArenaDatabase {
   }
 
   public ArenaInsertResult insertArena(Arena arena) {
-    InputStream[] streams = new InputStream[4];
     try (Connection c = this.manager.getConnection();
          CallableStatement stmt = c.prepareCall(insertArenaCallStmt);
-         TablesLock unused = new TablesLock(c, TablesLock.Type.READ, TABLES)) {
+         TablesLock unused = new TablesLock(c, TablesLock.Type.WRITE, TABLES)) {
       stmt.setString(1, arena.name());
       stmt.setString(2, arena.world().getName());
       stmt.setString(3, arena.serverName());
       Arena.Region baseRegion = arena.baseRegion();
       Point[] points = Point.from(baseRegion.cuboidRegion());
       for (int i = 0; i < 4; ++i) {
-        streams[i] = points[i].toStream();
-        stmt.setBinaryStream(i + 4, streams[i]);
+        stmt.setString(i + 4, points[i].toString());
       }
       stmt.registerOutParameter(8, Types.INTEGER);
       stmt.executeUpdate();
       return ArenaInsertResult.values()[stmt.getInt(8)];
     } catch (Exception e) {
+      e.printStackTrace();
       return ArenaInsertResult.SQL_FAILURE;
-    } finally {
-      for (int i = 0; i < 4; ++i)
-        if (streams[i] != null)
-          try {
-            streams[i].close();
-          } catch (IOException e) {}
     }
   }
 
@@ -107,8 +100,10 @@ public class ArenaDatabase {
          TablesLock unused = new TablesLock(c, TablesLock.Type.READ, TABLES)) {
       stmt.setString(1, name);
       Arena arena;
+      int arenaId;
       try (ResultSet rs = stmt.executeQuery()) {
         if (rs.next()) {
+          arenaId = rs.getInt(1);
           arena = this.readArenaRs(rs);
           if (arena == null)
             return null;
@@ -116,6 +111,7 @@ public class ArenaDatabase {
           return null;
         }
       }
+      stmt2.setInt(1, arenaId);
       try (ResultSet rs = stmt2.executeQuery()) {
         List<Arena.Region> regions = this.readRegionsRs(rs, arena.world());
         arena.addRegions(regions);

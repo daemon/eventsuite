@@ -54,6 +54,18 @@ public class Arena {
     return this.baseRegion;
   }
 
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("name: ").append(this.name).append(" ");
+    builder.append("base region: ").append(this.baseRegion.toString()).append(" ");
+    builder.append("server: ").append(this.serverName()).append(" ");
+    for (Region region : this.regions)
+      builder.append(region.toString()).append(" ");
+    for (NamedPoint point : this.points)
+      builder.append(point.toString()).append(" ");
+    return builder.toString();
+  }
+
   public static class NamedPoint {
     private final Vector point;
     private final String name;

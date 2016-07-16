@@ -16,7 +16,7 @@ public class MessagePrompt {
     player.sendMessage(ChatColor.YELLOW + message);
   }
 
-  private static String[] parameterize(ChatColor base, ChatColor color, Object ...params) {
+  private static Object[] parameterize(ChatColor base, ChatColor color, Object ...params) {
     String[] strings = new String[params.length];
     for (int i = 0; i < params.length; ++i)
       strings[i] = color + params[i].toString() + base;

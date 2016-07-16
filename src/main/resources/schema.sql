@@ -66,9 +66,9 @@ CREATE PROCEDURE InsertArena(arena_name VARCHAR(32), world_name VARCHAR(32), ser
     INSERT INTO server(name) VALUES (server_name) ON DUPLICATE KEY UPDATE name=server_name;
     INSERT INTO world(name) VALUES (world_name) ON DUPLICATE KEY UPDATE name=world_name;
     INSERT INTO region(name, xz1, xz2, y1, y2) VALUES ('base', xz1, xz2, y1, y2);
+    SET r_id = LAST_INSERT_ID();
     SET s_id = (SELECT id FROM server WHERE name=server_name);
     SET w_id = (SELECT id FROM world WHERE name=world_name);
-    SET r_id = (SELECT id FROM region WHERE name='base');
     INSERT INTO arena(name, world_id, server_id, base_region_id) VALUES (arena_name, w_id, s_id, r_id);
     SET a_id = (SELECT id FROM arena WHERE name=arena_name);
     INSERT INTO arena_region_assoc(arena_id, region_id) VALUES (a_id, r_id);
