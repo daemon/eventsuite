@@ -1,17 +1,19 @@
-package net.rocketeer.eventsuite;
+package net.rocketeer.eventsuite.config;
 
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.io.File;
 
 public class ConfigManager {
-  private final String hostname;
-  private final String database;
-  private final String password;
-  private final String user;
-  private final int port;
+  private final FileConfiguration config;
+  private volatile String hostname;
+  private volatile String database;
+  private volatile String password;
+  private volatile String user;
+  private volatile int port;
 
   public ConfigManager(FileConfiguration config) {
+    this.config = config;
     this.port = config.getInt("sql-port");
     this.user = config.getString("sql-user");
     this.password = config.getString("sql-password");
@@ -39,7 +41,11 @@ public class ConfigManager {
     return this.port;
   }
 
-  public File eventModuleDirectory() {
-    return null;
+  public void reload() {
+    this.port = config.getInt("sql-port");
+    this.user = config.getString("sql-user");
+    this.password = config.getString("sql-password");
+    this.database = config.getString("sql-database");
+    this.hostname = config.getString("sql-hostname");
   }
 }

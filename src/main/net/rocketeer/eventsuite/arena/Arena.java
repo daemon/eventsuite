@@ -8,6 +8,7 @@ import org.bukkit.util.Vector;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 public class Arena {
   private final Region baseRegion;
@@ -16,6 +17,7 @@ public class Arena {
   private final String name;
   private List<Region> regions = new LinkedList<>();
   private List<NamedPoint> points = new LinkedList<>();
+  private Optional<Integer> id = Optional.empty();
 
   public Arena(String name, String server, World world, Region baseRegion) {
     this.server = server;
@@ -36,6 +38,18 @@ public class Arena {
     return this.world;
   }
 
+  void setId(int id) {
+    this.id = Optional.of(id);
+  }
+
+  Optional<Integer> id() {
+    return this.id;
+  }
+
+  public List<NamedPoint> points() {
+    return this.points;
+  }
+
   public void addRegions(List<Region> regions) {
     if (this.regions.isEmpty())
       this.regions = regions;
@@ -52,6 +66,10 @@ public class Arena {
 
   public Region baseRegion() {
     return this.baseRegion;
+  }
+
+  public List<Region> regions() {
+    return this.regions;
   }
 
   public String toString() {
@@ -91,6 +109,10 @@ public class Arena {
     public Region(String name, CuboidRegion cuboidRegion) {
       this.cuboidRegion = cuboidRegion;
       this.name = name;
+    }
+
+    public String name() {
+      return this.name;
     }
 
     public CuboidRegion cuboidRegion() {

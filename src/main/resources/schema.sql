@@ -51,7 +51,7 @@ CREATE FUNCTION CreateEnvelope(p1 POINT, p2 POINT)
     RETURN bounding;
   END$$
 CREATE PROCEDURE InsertArena(arena_name VARCHAR(32), world_name VARCHAR(32), server_name VARCHAR(32),
-  xz1 POINT, xz2 POINT, y1 POINT, y2 POINT, OUT status INT)
+  xz1 POINT, xz2 POINT, y1 POINT, y2 POINT, OUT status INT, OUT arena_id INT UNSIGNED)
   begin_proc:
   BEGIN
     DECLARE s_id INT UNSIGNED;
@@ -73,6 +73,7 @@ CREATE PROCEDURE InsertArena(arena_name VARCHAR(32), world_name VARCHAR(32), ser
     SET a_id = (SELECT id FROM arena WHERE name=arena_name);
     INSERT INTO arena_region_assoc(arena_id, region_id) VALUES (a_id, r_id);
     SET status = 0;
+    SET arena_id = a_id;
   END$$
 CREATE PROCEDURE InsertArenaPoint(arena_name VARCHAR(32), point POINT, name VARCHAR(32), y INT, OUT status INT)
   begin_proc:

@@ -153,6 +153,10 @@ public class ArenaCreationWizard implements Listener {
   }
 
   public void run() {
+    if (arenaWizards.get(this.player) != null) {
+      MessagePrompt.error(this.player, "You're currently creating an arena. Do %s to stop", "/es cancel");
+      return;
+    }
     arenaWizards.put(this.player, this);
     this.prompt(this.currentStep);
     this.currentStepIterator = this.steps.listIterator();

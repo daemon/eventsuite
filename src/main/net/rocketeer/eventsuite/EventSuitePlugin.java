@@ -3,6 +3,7 @@ package net.rocketeer.eventsuite;
 import net.rocketeer.eventsuite.api.EventModule;
 import net.rocketeer.eventsuite.arena.ArenaCreationWizard;
 import net.rocketeer.eventsuite.command.*;
+import net.rocketeer.eventsuite.config.ConfigManager;
 import net.rocketeer.eventsuite.database.DatabaseManager;
 import net.rocketeer.eventsuite.eventbus.Endpoint;
 import net.rocketeer.eventsuite.eventbus.Endpoints;

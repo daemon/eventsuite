@@ -8,15 +8,17 @@ import net.rocketeer.eventsuite.geometry.Point;
 import net.rocketeer.eventsuite.geometry.WKBReader;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.util.Vector;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class ArenaDatabase {
   public enum ArenaInsertResult { SUCCESS, EXISTS, SQL_FAILURE };
+  private enum ArenaAreaInsertResult { SUCCESS, NO_SUCH_ARENA, SQL_FAILURE };
   private final DatabaseManager manager;
   // aid, pid, x, y, z, server_id, world_id, pname, sname, wname
   private static final String findArenaStmt = "SELECT arena.id, server.name AS sname, " +
@@ -25,12 +27,18 @@ public class ArenaDatabase {
       "arena.base_region_id=region.id WHERE arena.name=?";
   private static final String findRegionsStmt = "SELECT region_id, name, xz1, xz2, y1, y2 FROM arena_region_assoc " +
       "INNER JOIN region ON region.id=region_id WHERE arena_id=?";
-  private static final String insertArenaCallStmt = "{call InsertArena(?, ?, ?, GeomFromText(?), GeomFromText(?), " +
-      "GeomFromText(?), GeomFromText(?), ?)}";
+  private static final String insertArenaCallStmt = "{call InsertArena(?, ?, ?, POINT(?, ?), POINT(?, ?), " +
+      "POINT(?, ?), POINT(?, ?), ?)}";
+  private static final String insertArenaPointCallStmt = "{call InsertArenaPoint(?, POINT(?, ?), ?, ?, ?)}";
+  private static final String insertArenaRegionCallStmt = "{call InsertArenaRegion(?, ?, POINT(?, ?), POINT(?, ?), POINT(?, ?), POINT(?, ?), ?)}";
+  private static final String checkRegionsStmt = "SELECT * FROM region INNER JOIN arena_region_assoc ON " +
+      "arena_region_assoc.region_id=region.id WHERE arena_id=? AND MBRContains(CreateEnvelope(xz1, xz2), " +
+      "POINT(?, ?)) AND MBRContains(CreateEnvelope(y1, y2), POINT(?, ?))";
+  // private static final String findRegionsContainingStmt = "SELECT "
   private static final String[] TABLES = {"arena", "arena_point_assoc", "arena_region_assoc", "server", "world", "point", "region"};
 
-  public ArenaDatabase(DatabaseManager manager) {
-    this.manager = manager;
+  public ArenaDatabase() {
+    this.manager = EventSuitePlugin.instance.databaseManager();
   }
 
   private Point[] readPoints(ResultSet rs, int begin, int end) throws SQLException, IOException {
@@ -60,6 +68,34 @@ public class ArenaDatabase {
     return new Arena(arenaName, serverName, world, new Arena.Region(regionName, region));
   }
 
+  public RegionCheckResult findContainingRegions(Arena arena, Vector location) {
+    double x = location.getX();
+    double y = location.getY();
+    double z = location.getZ();
+    if (!arena.id().isPresent())
+      return null;
+    try (Connection c = this.manager.getConnection();
+         PreparedStatement stmt = c.prepareCall(checkRegionsStmt);
+         TablesLock unused = new TablesLock(c, TablesLock.Type.READ, TABLES)) {
+      stmt.setInt(1, arena.id().get());
+      stmt.setDouble(2, location.getX());
+      stmt.setDouble(3, location.getZ());
+      stmt.setDouble(4, location.getX());
+      stmt.setDouble(5, location.getY());
+      List<Arena.Region> regions;
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next())
+          return new RegionCheckResult(this.readRegionsRs(rs, arena.world()));
+        else
+          return new RegionCheckResult(RegionCheckResult.Type.SUCCESS);
+      }
+    } catch (SQLException e) {
+      return new RegionCheckResult(RegionCheckResult.Type.SQL_FAILURE);
+    } catch (Exception e) {
+      return new RegionCheckResult(RegionCheckResult.Type.UNKNOWN_FAILURE);
+    }
+  }
+
   private List<Arena.Region> readRegionsRs(ResultSet rs, World world) throws SQLException, IOException {
     List<Arena.Region> regions = new LinkedList<>();
     while (rs.next()) {
@@ -72,6 +108,46 @@ public class ArenaDatabase {
     return regions;
   }
 
+  public ArenaAreaInsertResult insertArenaPoints(Connection c, Arena arena) throws SQLException {
+    try (CallableStatement stmt = c.prepareCall(insertArenaPointCallStmt)) {
+      for (Arena.NamedPoint point : arena.points()) {
+        stmt.setString(1, arena.name());
+        stmt.setDouble(2, point.point().getX());
+        stmt.setDouble(3, point.point().getZ());
+        stmt.setString(4, point.name());
+        stmt.setInt(5, point.point().getBlockY());
+        stmt.registerOutParameter(6, Types.INTEGER);
+        stmt.executeUpdate();
+        int status = stmt.getInt(6);
+        ArenaAreaInsertResult ret = ArenaAreaInsertResult.values()[status];
+        if (ret != ArenaAreaInsertResult.SUCCESS)
+          return ret;
+      }
+    }
+    return ArenaAreaInsertResult.SUCCESS;
+  }
+
+  public ArenaAreaInsertResult insertArenaRegions(Connection c, Arena arena) throws SQLException {
+    try (CallableStatement stmt = c.prepareCall(insertArenaRegionCallStmt)) {
+      for (Arena.Region region : arena.regions()) {
+        stmt.setString(1, arena.name());
+        stmt.setString(2, region.name());
+        Point[] points = Point.from(region.cuboidRegion());
+        for (int i = 0; i < 4; ++i) {
+          stmt.setDouble(i * 2 + 3, points[i].x);
+          stmt.setDouble(i * 2 + 4, points[i].y);
+        }
+        stmt.registerOutParameter(11, Types.INTEGER);
+        stmt.executeUpdate();
+        int status = stmt.getInt(11);
+        ArenaAreaInsertResult ret = ArenaAreaInsertResult.values()[status];
+        if (ret != ArenaAreaInsertResult.SUCCESS)
+          return ret;
+      }
+    }
+    return ArenaAreaInsertResult.SUCCESS;
+  }
+
   public ArenaInsertResult insertArena(Arena arena) {
     try (Connection c = this.manager.getConnection();
          CallableStatement stmt = c.prepareCall(insertArenaCallStmt);
@@ -82,15 +158,27 @@ public class ArenaDatabase {
       Arena.Region baseRegion = arena.baseRegion();
       Point[] points = Point.from(baseRegion.cuboidRegion());
       for (int i = 0; i < 4; ++i) {
-        stmt.setString(i + 4, points[i].toString());
+        stmt.setDouble(i * 2 + 4, points[i].x);
+        stmt.setDouble(i * 2 + 5, points[i].y);
       }
-      stmt.registerOutParameter(8, Types.INTEGER);
+      stmt.registerOutParameter(12, Types.INTEGER);
+      stmt.registerOutParameter(13, Types.INTEGER);
       stmt.executeUpdate();
-      return ArenaInsertResult.values()[stmt.getInt(8)];
+      ArenaInsertResult ret = ArenaInsertResult.values()[stmt.getInt(12)];
+      if (ret != ArenaInsertResult.SUCCESS)
+        return ret;
+      ArenaAreaInsertResult ret2 = this.insertArenaPoints(c, arena);
+      if (ret2 != ArenaAreaInsertResult.SUCCESS)
+        return ArenaInsertResult.SQL_FAILURE;
+      ret2 = this.insertArenaRegions(c, arena);
+      if (ret2 != ArenaAreaInsertResult.SUCCESS)
+        return ArenaInsertResult.SQL_FAILURE;
+      arena.setId(stmt.getInt(13));
     } catch (Exception e) {
       e.printStackTrace();
       return ArenaInsertResult.SQL_FAILURE;
     }
+    return ArenaInsertResult.SUCCESS;
   }
 
   public Arena findArena(String name) {

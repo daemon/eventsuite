@@ -1,8 +1,7 @@
 package net.rocketeer.eventsuite.database;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import net.rocketeer.eventsuite.ConfigManager;
-import net.rocketeer.eventsuite.EventSuitePlugin;
+import net.rocketeer.eventsuite.config.ConfigManager;
 
 import java.beans.PropertyVetoException;
 import java.io.IOException;
