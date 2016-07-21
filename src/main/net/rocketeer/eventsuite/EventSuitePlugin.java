@@ -1,21 +1,19 @@
 package net.rocketeer.eventsuite;
 
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import net.rocketeer.eventsuite.api.EventModule;
 import net.rocketeer.eventsuite.arena.ArenaCreationWizard;
+import net.rocketeer.eventsuite.arena.ArenaManager;
 import net.rocketeer.eventsuite.command.*;
 import net.rocketeer.eventsuite.config.ConfigManager;
-import net.rocketeer.eventsuite.database.DatabaseManager;
 import net.rocketeer.eventsuite.eventbus.Endpoint;
 import net.rocketeer.eventsuite.eventbus.Endpoints;
 import net.rocketeer.eventsuite.eventbus.EventBus;
 import net.rocketeer.eventsuite.eventbus.Subscribers;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
-
-import java.beans.PropertyVetoException;
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 
 public class EventSuitePlugin extends JavaPlugin {
@@ -23,8 +21,8 @@ public class EventSuitePlugin extends JavaPlugin {
   private EventBus eventBus;
   private String serverName;
   private ConfigManager configManager;
-  private DatabaseManager databaseManager;
   private BungeeServerManager manager;
+  private ArenaManager arenaManager;
   private EventSuiteBaseCommand baseCmd;
 
   // TODO ModuleManager?
@@ -42,19 +40,10 @@ public class EventSuitePlugin extends JavaPlugin {
 
   private void setupManagers() {
     this.configManager = new ConfigManager(this.getConfig());
+    this.arenaManager = new ArenaManager(this.configManager.arenas());
     this.eventBus = new EventBus();
     BungeeServerManager manager = new BungeeServerManager();
     this.manager = manager;
-    try {
-      this.databaseManager = new DatabaseManager(this.configManager);
-      this.databaseManager.createDefaultTables();
-    } catch (PropertyVetoException | SQLException e) {
-      Bukkit.getLogger().warning("Couldn't connect to database");
-      return;
-    } catch (IOException e) {
-      Bukkit.getLogger().warning("Schema file not present in .jar");
-      return;
-    }
     Bukkit.getPluginManager().registerEvents(manager, this);
     Messenger messenger = this.getServer().getMessenger();
     messenger.registerOutgoingPluginChannel(this, "BungeeCord");
@@ -81,16 +70,16 @@ public class EventSuitePlugin extends JavaPlugin {
     ArenaCreationWizard.init();
   }
 
+  public ArenaManager arenaManager() {
+    return this.arenaManager;
+  }
+
   public BungeeServerManager bungeeManager() {
     return this.manager;
   }
 
   public ConfigManager configManager() {
     return this.configManager;
-  }
-
-  public DatabaseManager databaseManager() {
-    return this.databaseManager;
   }
 
   public static void announce(String str) {
@@ -104,5 +93,12 @@ public class EventSuitePlugin extends JavaPlugin {
 
   public EventBus eventBus() {
     return this.eventBus;
+  }
+
+  public WorldGuardPlugin worldGuard() {
+    Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin("WorldGuard");
+    if (plugin == null)
+      return null;
+    return (WorldGuardPlugin) plugin;
   }
 }

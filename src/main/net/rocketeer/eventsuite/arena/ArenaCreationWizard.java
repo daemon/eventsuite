@@ -1,12 +1,13 @@
 package net.rocketeer.eventsuite.arena;
 
-import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.selections.CuboidSelection;
 import com.sk89q.worldedit.bukkit.selections.Selection;
-import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.world.World;
+import com.sk89q.worldguard.bukkit.BukkitUtil;
+import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.rocketeer.eventsuite.EventSuitePlugin;
 import net.rocketeer.eventsuite.MessagePrompt;
 import net.rocketeer.eventsuite.command.SubCommandExecutor;
@@ -29,11 +30,11 @@ public class ArenaCreationWizard implements Listener {
   private final List<Step> steps = new LinkedList<>();
   private final Queue<String> regionNames = new LinkedList<>();
   private final Queue<String> pointNames = new LinkedList<>();
-  private final List<Arena.Region> regions = new LinkedList<>();
+  private final List<ProtectedRegion> regions = new LinkedList<>();
   private final List<Arena.NamedPoint> points = new LinkedList<>();
   private volatile ListIterator<Step> currentStepIterator;
   private volatile Step currentStep;
-  private volatile Arena.Region baseRegion;
+  private volatile ProtectedRegion baseRegion;
   private final Player player;
   private String arenaName;
   private Callback callback;
@@ -78,9 +79,10 @@ public class ArenaCreationWizard implements Listener {
       }
       CuboidSelection cube = (CuboidSelection) selection;
       World world = new BukkitWorld(this.player.getWorld());
-      CuboidRegion cuboidRegion = new CuboidRegion(world, cube.getNativeMinimumPoint(), cube.getNativeMaximumPoint());
       String name = this.currentStep == Step.ARENA_REGION_SELECTION ? "base" : this.regionNames.poll();
-      Arena.Region region = new Arena.Region(name, cuboidRegion);
+      String id = this.arenaName + "_" + name;
+      ProtectedRegion region = new ProtectedCuboidRegion(id, BukkitUtil.toVector(cube.getMinimumPoint().getBlock()),
+          BukkitUtil.toVector(cube.getMaximumPoint().getBlock()));
       if (this.baseRegion == null)
         this.baseRegion = region;
       else
@@ -104,7 +106,7 @@ public class ArenaCreationWizard implements Listener {
 
     arenaWizards.remove(this.player);
     String serverName = EventSuitePlugin.instance.bungeeManager().serverName();
-    this.storedArena = new Arena(this.arenaName, serverName, this.player.getWorld(), this.baseRegion);
+    this.storedArena = new Arena(this.arenaName, this.player.getWorld(), this.baseRegion);
     this.storedArena.addPoints(this.points);
     this.storedArena.addRegions(this.regions);
     MessagePrompt.success(this.player, "Created arena %s", this.arenaName);

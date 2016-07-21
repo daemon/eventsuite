@@ -1,9 +1,8 @@
 package net.rocketeer.eventsuite.eventbus;
 
 import net.rocketeer.eventsuite.EventSuitePlugin;
-import net.rocketeer.eventsuite.eventbus.Endpoint;
-import net.rocketeer.eventsuite.eventbus.Endpoints;
-import net.rocketeer.eventsuite.eventbus.Subscribe;
+import net.rocketeer.eventsuite.arena.Arena;
+import net.rocketeer.eventsuite.eventbus.message.FindArenaResponse;
 import net.rocketeer.eventsuite.eventbus.message.FindPlayerRequest;
 import net.rocketeer.eventsuite.eventbus.message.FindPlayerResponse;
 import net.rocketeer.eventsuite.eventbus.message.TeleportPlayerRequest;
@@ -38,6 +37,15 @@ public class Subscribers {
         return;
       if (response.found())
         player.sendMessage(response.playerName() + "[" + response.foundAddress() + "]");
+    }
+
+    @Subscribe(Endpoints.FIND_ARENA_REQUEST)
+    public void onFindArenaRequest(String request) {
+      Arena arena = EventSuitePlugin.instance.arenaManager().find(request);
+      if (arena == null || EventSuitePlugin.instance.bungeeManager().serverName() == null)
+        return;
+      EventSuitePlugin.instance.eventBus().publishAll(new Endpoint(Endpoints.FIND_ARENA_RESPONSE),
+          new FindArenaResponse(request, EventSuitePlugin.instance.bungeeManager().serverName()));
     }
 
     @Subscribe(Endpoints.TELEPORT_REQUEST)

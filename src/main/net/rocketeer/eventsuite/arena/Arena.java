@@ -1,33 +1,28 @@
 package net.rocketeer.eventsuite.arena;
 
-import com.sk89q.worldedit.regions.CuboidRegion;
-import net.rocketeer.eventsuite.geometry.Point;
-import org.bukkit.Location;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 public class Arena {
-  private final Region baseRegion;
-  private final String server;
+  private final ProtectedRegion baseRegion;
   private final World world;
   private final String name;
-  private List<Region> regions = new LinkedList<>();
+  private List<ProtectedRegion> regions = new LinkedList<>();
   private List<NamedPoint> points = new LinkedList<>();
-  private Optional<Integer> id = Optional.empty();
+  private Map<String, ProtectedRegion> regionMap = new HashMap<>();
+  private Map<String, NamedPoint> pointMap = new HashMap<>();
 
-  public Arena(String name, String server, World world, Region baseRegion) {
-    this.server = server;
+  public Arena(String name, World world, ProtectedRegion baseRegion) {
     this.world = world;
     this.baseRegion = baseRegion;
+    this.regionMap.put("base", baseRegion);
     this.name = name;
-  }
-
-  public String serverName() {
-    return this.server;
   }
 
   public String name() {
@@ -38,23 +33,17 @@ public class Arena {
     return this.world;
   }
 
-  void setId(int id) {
-    this.id = Optional.of(id);
-  }
-
-  Optional<Integer> id() {
-    return this.id;
-  }
-
   public List<NamedPoint> points() {
     return this.points;
   }
 
-  public void addRegions(List<Region> regions) {
+  public void addRegions(List<ProtectedRegion> regions) {
     if (this.regions.isEmpty())
       this.regions = regions;
     else
       this.regions.addAll(regions);
+    for (ProtectedRegion region : regions)
+      this.regionMap.put(region.getId().replace(this.name + "_", ""), region);
   }
 
   public void addPoints(List<NamedPoint> points) {
@@ -62,26 +51,24 @@ public class Arena {
       this.points = points;
     else
       this.points.addAll(points);
+    for (NamedPoint point : points)
+      this.pointMap.put(point.name(), point);
   }
 
-  public Region baseRegion() {
+  public ProtectedRegion baseRegion() {
     return this.baseRegion;
   }
 
-  public List<Region> regions() {
-    return this.regions;
+  public ProtectedRegion findRegion(String name) {
+    return this.regionMap.get(name);
   }
 
-  public String toString() {
-    StringBuilder builder = new StringBuilder();
-    builder.append("name: ").append(this.name).append(" ");
-    builder.append("base region: ").append(this.baseRegion.toString()).append(" ");
-    builder.append("server: ").append(this.serverName()).append(" ");
-    for (Region region : this.regions)
-      builder.append(region.toString()).append(" ");
-    for (NamedPoint point : this.points)
-      builder.append(point.toString()).append(" ");
-    return builder.toString();
+  public NamedPoint findPoint(String name) {
+    return this.pointMap.get(name);
+  }
+
+  public List<ProtectedRegion> regions() {
+    return this.regions;
   }
 
   public static class NamedPoint {
@@ -99,24 +86,6 @@ public class Arena {
 
     public Vector point() {
       return this.point;
-    }
-  }
-
-  public static class Region {
-    private CuboidRegion cuboidRegion;
-    private String name;
-
-    public Region(String name, CuboidRegion cuboidRegion) {
-      this.cuboidRegion = cuboidRegion;
-      this.name = name;
-    }
-
-    public String name() {
-      return this.name;
-    }
-
-    public CuboidRegion cuboidRegion() {
-      return this.cuboidRegion;
     }
   }
 }
